@@ -1,12 +1,19 @@
+import DetailClient from './detail-client'
+import productsRaw from '@/data/products.json'
+import type { Product } from '@/types'
+
+const products = productsRaw as Product[]
+
 export function generateStaticParams() {
-  return [{ id: 'placeholder' }]
+  const ids = products.map((p) => p.id)
+  const params: { locale: string; id: string }[] = []
+  for (const id of ids) {
+    params.push({ locale: 'zh', id })
+    params.push({ locale: 'en', id })
+  }
+  return params
 }
 
-export default function ProductDetailPage({ params: { locale, id } }: { params: { locale: string; id: string } }) {
-  const title = locale === 'zh' ? '商品详情' : 'Product Details'
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0D1117] text-white">
-      <h1 className="text-4xl font-bold">{title} — {id}</h1>
-    </div>
-  )
+export default function Page() {
+  return <DetailClient />
 }
