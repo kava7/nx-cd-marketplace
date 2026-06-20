@@ -11,7 +11,7 @@ export default function LocaleLayoutClient({
   children: ReactNode
   locale: string
 }) {
-  const { setLocale } = useLocale()
+  const { setLocale, t } = useLocale()
 
   useEffect(() => {
     setLocale(locale as 'zh' | 'en')
@@ -22,7 +22,7 @@ export default function LocaleLayoutClient({
       <Navbar />
       <main className="min-h-screen pt-16">{children}</main>
       <footer className="border-t border-white/10 py-6 text-center text-sm text-gray-500">
-        <p>© 2024 NX/CD Marketplace. All rights reserved.</p>
+        <p>{t('footer.copyright')}</p>
       </footer>
     </>
   )
