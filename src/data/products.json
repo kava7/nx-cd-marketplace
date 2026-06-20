@@ -1,0 +1,46 @@
+[
+  {
+    "id": "nx-cd",
+    "name_zh": "NX/CD 指标",
+    "name_en": "NX/CD Indicator",
+    "desc_zh": "NX/CD 是一种基于价格动量与成交量确认的底部反转信号指标，适用于美股、日股和港股。通过识别关键支撑位与资金流入，帮助交易者在市场底部区域提前布局。",
+    "desc_en": "The NX/CD Indicator is a bottom-reversal signal tool based on price momentum and volume confirmation. Suitable for US, Japan, and HK stocks, it helps traders position early at market bottoms by identifying key support levels and capital inflows.",
+    "price_usd": 49,
+    "category": "抄底指标",
+    "markets": ["us", "jp", "hk"],
+    "images": ["/images/placeholder.png"]
+  },
+  {
+    "id": "obv",
+    "name_zh": "OBV 指标",
+    "name_en": "OBV Indicator",
+    "desc_zh": "OBV（能量潮）通过累加成交量来追踪资金流向，当价格与 OBV 出现背离时可提前发现潜在的底部或顶部反转信号。适用于美股和日本市场。",
+    "desc_en": "On-Balance Volume (OBV) tracks capital flow by accumulating volume. Divergence between price and OBV can signal potential bottom or top reversals early. Available for US and Japan markets.",
+    "price_usd": 39,
+    "category": "量价指标",
+    "markets": ["us", "jp"],
+    "images": ["/images/placeholder.png"]
+  },
+  {
+    "id": "accumulation",
+    "name_zh": "吸筹派发指标",
+    "name_en": "Accumulation/Distribution Indicator",
+    "desc_zh": "吸筹派发指标通过价格与成交量的关系判断市场主力是在吸筹还是派发，帮助交易者识别大资金动向，捕捉潜在的上涨行情。适用于美股和港股。",
+    "desc_en": "The Accumulation/Distribution Indicator uses price-volume relationship to determine whether smart money is accumulating or distributing. It helps traders identify large capital flows and catch potential upward moves. Available for US and HK markets.",
+    "price_usd": 59,
+    "category": "量价指标",
+    "markets": ["us", "hk"],
+    "images": ["/images/placeholder.png"]
+  },
+  {
+    "id": "macd",
+    "name_zh": "MACD 指标",
+    "name_en": "MACD Indicator",
+    "desc_zh": "MACD（指数平滑异同移动平均线）是最常用的趋势跟踪指标之一，通过快慢均线交叉与柱状图变化判断趋势强弱和买卖时机。适用于美股、日股和港股。",
+    "desc_en": "MACD (Moving Average Convergence Divergence) is one of the most popular trend-following indicators. It uses fast/slow MA crossovers and histogram changes to gauge trend strength and entry/exit timing. Available for US, Japan, and HK markets.",
+    "price_usd": 29,
+    "category": "常用指标",
+    "markets": ["us", "jp", "hk"],
+    "images": ["/images/placeholder.png"]
+  }
+]
