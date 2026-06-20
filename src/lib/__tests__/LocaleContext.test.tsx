@@ -67,7 +67,7 @@ describe('LocaleContext', () => {
       result.current.setLocale('en')
     })
 
-    expect(setItemSpy).toHaveBeenCalledWith('locale', 'en')
+    expect(setItemSpy).toHaveBeenCalledWith('nxcd-locale', 'en')
     setItemSpy.mockRestore()
   })
 })
@@ -81,16 +81,20 @@ describe('useLocale', () => {
 })
 
 describe('localizePath', () => {
-  it('returns path unchanged', () => {
-    expect(localizePath('/')).toBe('/')
-    expect(localizePath('/shop')).toBe('/shop')
-    expect(localizePath('/store/nx-cd')).toBe('/store/nx-cd')
-    expect(localizePath('/contact')).toBe('/contact')
+  it('prepends locale to path', () => {
+    expect(localizePath('/', 'zh')).toBe('/zh')
+    expect(localizePath('/shop', 'en')).toBe('/en/shop')
+    expect(localizePath('/store/nx-cd', 'zh')).toBe('/zh/store/nx-cd')
+    expect(localizePath('/contact', 'en')).toBe('/en/contact')
   })
 })
 
 describe('LocaleLink', () => {
-  it('renders a link with the given href', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('renders a link with locale-prefixed href', () => {
     render(
       <LocaleProvider>
         <LocaleLink href="/shop">Shop</LocaleLink>
@@ -99,6 +103,6 @@ describe('LocaleLink', () => {
 
     const link = screen.getByRole('link', { name: 'Shop' })
     expect(link).toBeDefined()
-    expect(link.getAttribute('href')).toBe('/shop')
+    expect(link.getAttribute('href')).toBe('/zh/shop')
   })
 })

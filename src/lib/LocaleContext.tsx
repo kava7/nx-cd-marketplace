@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { createContext, useState, useCallback, type ReactNode } from 'react'
 import zh from '../../locales/zh.json'
 import en from '../../locales/en.json'
 
@@ -17,25 +17,19 @@ export interface LocaleContextValue {
 
 export const LocaleContext = createContext<LocaleContextValue | null>(null)
 
-function getInitialLocale(): Locale {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('locale')
-    if (stored === 'zh' || stored === 'en') return stored
-  }
-  return 'zh'
-}
-
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('zh')
-
-  useEffect(() => {
-    setLocaleState(getInitialLocale())
-  }, [])
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('nxcd-locale')
+      if (stored === 'zh' || stored === 'en') return stored
+    }
+    return 'zh'
+  })
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l)
     if (typeof window !== 'undefined') {
-      localStorage.setItem('locale', l)
+      localStorage.setItem('nxcd-locale', l)
     }
   }, [])
 
