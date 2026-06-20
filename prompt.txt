@@ -1,0 +1,82 @@
+你是一位资深全栈工程师，请使用 Next.js 14 (App Router) + TypeScript + Tailwind CSS 创建一个完整的静态股票指标商城网站，项目名为“NX/CD 商城”，可部署到 Cloudflare Pages。严格遵循以下全部要求：
+
+## 1. 项目结构与配置
+- 使用 App Router，所有页面放在 app/ 目录下
+- 支持中英文双语，使用简单的字典方案：locales/zh.json 和 locales/en.json，通过 React Context 切换
+- 样式：Tailwind CSS，自定义深色金融主题配色
+- 静态导出配置：next.config.js 中设置 output: 'export'，并处理 i18n 静态路径
+- 添加 @cloudflare/next-on-pages 适配（wrangler.toml）
+- 所有图片暂时使用占位图：/images/placeholder.png（一个灰色 800x600 图，用 CSS 生成也可）
+
+## 2. 全局 UI 设计
+- 深色主题：背景 #0B0E11，卡片 #1E2329，边框 #2B3139
+- 强调色：涨/买入 #0ECB81，跌/卖出 #F6465D
+- 字体：标题 Inter，正文系统默认
+- 导航栏：顶部固定毛玻璃效果，包含 Logo (NX/CD)、菜单项（首页、商城、选股器、警报、联系我们）、语言切换按钮、购物车图标（仅展示）
+- 按钮：主要操作用渐变绿色，hover 发光
+- 图标库：lucide-react
+
+## 3. 数据文件
+创建 data/products.json，包含 4 个商品，字段：id, name_zh, name_en, desc_zh, desc_en, price_usd, category, images(数组，暂时都是"/images/placeholder.png")。
+商品：
+1) NX/CD 指标 (nx-cd)，$49，类别“抄底指标”，描述突出精准捕捉买卖点。
+2) OBV 指标 (obv)，$39，类别“量价指标”，描述能量潮判断趋势。
+3) 吸筹派发指标 (accumulation)，$59，类别“量价指标”，描述主力资金动向。
+4) MACD 指标 (macd)，$29，类别“常用指标”，描述经典趋势指标。
+
+创建 data/mock-signals.ts，导出 15 条模拟美股抄底信号，字段：symbol, name, signal_time, strength (强/中/低), price, change_percent。
+
+## 4. 页面与组件
+
+### 首页 (/ 或 /zh /en)
+- Hero 区域：大标题“精准捕捉每一次抄底机会”，副标题“NX/CD 指标 + 实时扫描警报，让韭菜不再被收割”，两个按钮“立即选购指标”和“了解选股器”
+- 背景深色网格加微弱浮动蜡烛动画（CSS 实现）
+- 向下滚动箭头
+- 下方展示 4 个商品卡片简要列表（从 products.json 读取）
+
+### 商城页 (/shop)
+- 网格展示所有商品，卡片包含图片、名称、价格、简短描述、购买按钮
+- 按类别筛选：全部、抄底指标、量价指标、常用指标
+- 点击商品进入详情 /shop/[id]
+
+### 产品详情页 (/shop/[id])
+- 左侧图片轮播（如果多张图，可简单实现左右切换），右侧信息：名称、价格、描述、适用市场（美股/日股/港股）
+- 付款方式选择：微信 / PayPal（单选按钮）
+- “立即购买”按钮，点击后执行模拟购买（调用 Discord Webhook）
+- 创建 lib/purchase.ts，其中 purchase 函数发送 fetch 到 process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL，内容为 JSON: { content: "🛒 {用户名} 购买了 {商品名}，付款方式：{方式}，金额：${price}，时间：{ISO时间}" }。用户名暂时随机生成或“用户***”。
+- 购买成功后显示下载链接（模拟，可下载一个占位 zip 文件 /files/sample.zip）
+
+### 美股选股器页 (/screener)
+- 说明：“扫描美股 415 只股票最近 2 日抄底信号”
+- 界面包含“开始扫描”按钮，点击后显示加载 2 秒，然后呈现结果表格（从 mock-signals 读取）
+- 表格列：代码、名称、信号时间、强度（带颜色）、价格、涨跌幅
+- 支持按强度或涨跌幅排序
+- 行可展开查看模拟详细指标（随机生成一些数值）
+
+### 实时警报页 (/alerts)
+- 顶部介绍文字
+- 3 个订阅方案卡片（免费、专业 $29.9/月、终极 $79.9/月），各有特性列表和“订阅”按钮（点击弹出邮箱输入框）
+- 底部用 Tab 切换“美股警报”/“港股警报”（内容相同，演示用）
+- 模拟实时警报日志：一个列表，每 3 秒自动新增一条随机信号记录（模拟 WebSocket 效果）
+
+### 联系我们 (/contact)
+- 表单：姓名、邮箱、消息，提交时同样发送到 Discord Webhook
+- Discord 社区邀请卡片（链接占位）
+- 客服邮箱 support@nxcduk.com
+
+## 5. 多语言实现
+- 所有界面文字均从语言字典获取，用 useLocale hook 或 Context 提供 t('key')
+- 字典包含所有页面所需的键值对，中英文齐全
+
+## 6. 部署准备
+- 生成 README.md 说明如何在 Cloudflare Pages 部署：构建命令 npx @cloudflare/next-on-pages，输出目录 .vercel/output/static，环境变量设置 NEXT_PUBLIC_DISCORD_WEBHOOK_URL
+- 确保 next.config.js 正确处理静态导出和 trailingSlash
+
+## 7. 代码要求
+- 所有组件 TypeScript 严格类型
+- Tailwind 类名整洁，尽量复用样式
+- 可在一个主 layout.tsx 中提供导航和语言 Context
+- 数据从文件静态加载，无需 API 路由
+- 整个项目可运行 npm run dev 直接预览
+
+请严格按照以上要求生成完整项目代码，包含所有文件内容。从项目根目录开始，逐个文件输出，并解释关键逻辑。
