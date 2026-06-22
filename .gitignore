@@ -35,3 +35,7 @@ worktrees/
 # IDE
 .vscode/
 .idea/
+
+# Agent / MCP
+.opencode/
+.playwright-mcp/
