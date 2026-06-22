@@ -1,0 +1,302 @@
+import json
+import sys
+import time
+import warnings
+from datetime import datetime, timedelta
+
+import numpy as np
+import pandas as pd
+import requests
+import yfinance as yf
+
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+# --- 核心补丁代码：开始 ---
+def patched_download(tickers, period="1y", interval="1d", **kwargs):
+    ticker = tickers[0] if isinstance(tickers, list) else tickers
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+    url = f"https://query2.finance.yahoo.com/v8/finance/chart/{ticker}"
+    params = {'range': period if period != "730d" else "2y", 'interval': interval}
+
+    try:
+        resp = requests.get(url, params=params, headers=headers, timeout=10)
+        data = resp.json()['chart']['result'][0]
+        df = pd.DataFrame({
+            'Open': data['indicators']['quote'][0]['open'],
+            'High': data['indicators']['quote'][0]['high'],
+            'Low': data['indicators']['quote'][0]['low'],
+            'Close': data['indicators']['quote'][0]['close'],
+            'Volume': data['indicators']['quote'][0]['volume']
+        }, index=pd.to_datetime(data['timestamp'], unit='s'))
+        df.index.name = 'Date'
+        if isinstance(tickers, list) or kwargs.get('group_by') == 'ticker':
+            df.columns = pd.MultiIndex.from_product([[ticker], df.columns])
+        return df
+    except Exception as e:
+        print(f"补丁下载失败: {e}", file=sys.stderr)
+        return pd.DataFrame()
+
+
+yf.download = patched_download
+# --- 核心补丁代码：结束 ---
+
+# --- 选股列表 (美股) ---
+def get_us_target_tickers():
+    tickers = [
+        'HMBL', 'IRBT', 'SOFI', 'BBAI', 'TDIC', 'BYND', 'GTCH', 'DBRG', 'RGTI', 'RNWF',
+        'RR', 'BMNR', 'OPEN', 'ACHR', 'PLTR', 'ASII', 'IREN', 'CRCW', 'APLD', 'SMR',
+        'TGL', 'CIFR', 'AVGO', 'IXHL', 'HOOD', 'BURU', 'MRVL', 'HIMS', 'TTCM', 'MU',
+        'WULF', 'SMCI', 'CRDV', 'SOUN', 'JOBY', 'ABTC', 'IONQ', 'CAN', 'RXRX', 'YYAI',
+        'CLF', 'RIOT', 'FITY', 'RKLB', 'OKLO', 'QS', 'SERV', 'BE', 'MWWC', 'NBIS',
+        'RZLV', 'SYM', 'LAC', 'AUR', 'VSCO', 'MCHP', 'ASBP', 'CBDL', 'ECX', 'FTEG',
+        'OZSC', 'SNDK', 'APRU', 'TKMO', 'LAZR', 'NEOM', 'CBDD', 'NAKA', 'BTDR', 'LRCX',
+        'SES', 'FLNC', 'GRLF', 'VRT', 'U', 'COIN', 'CORZ', 'CAPR', 'SBET', 'SEII',
+        'IBRX', 'PSTG', 'JPM', 'GLXY', 'PTON', 'RDDT', 'TXHE', 'RDW', 'GXXM', 'LUNR',
+        'APLT', 'WDC', 'NBRI', 'SLNH', 'VFC', 'KSS', 'SHOP', 'CMBM', 'PL', 'CRDO',
+        'ATCH', 'COHR', 'ANET', 'HWH', 'MGNX', 'SURY', 'MVST', 'DELL', 'ROKU', 'ENVX',
+        'ZIM', 'MJLB', 'SABR', 'XCPL', 'AMPX', 'BW', 'ALAB', 'ABSI', 'ZETA', 'USNL',
+        'HUMA', 'CETX', 'SMX', 'STUB', 'QSI', 'INDI', 'NUAI', 'DFLI', 'ARWR', 'LITE',
+        'HUT', 'APP', 'EVTL', 'XRX', 'MIST', 'AFRM', 'SRFM', 'HIMX', 'SGML', 'UPST',
+        'GPRO', 'TEM', 'AXTI', 'ESPR', 'UPXI', 'CVNA', 'VERI', 'PRPH', 'IE', 'VTYX',
+        'TSHA', 'FORZ', 'FRMI', 'BFLY', 'RONN', 'PRAX', 'AAOI', 'TDUP', 'STX', 'PCTL',
+        'SNTX', 'INVZ', 'ENTG', 'FIGR', 'PRME', 'AIRE', 'LSCC', 'RUM', 'DFDV', 'TTMI',
+        'VFF', 'NRGV', 'AEVA', 'WSC', 'ARM', 'IPIX', 'CC', 'FTEL', 'KLAR', 'SPCE',
+        'W', 'RANI', 'JMIA', 'OPTT', 'TRSI', 'CABA', 'PCT', 'BKKT', 'FIVE', 'CSIQ',
+        'COMM', 'TROX', 'MGNI', 'PLRZ', 'REKR', 'VSME', 'CCCC', 'FONU', 'ECEZ', 'SEI',
+        'Q', 'RVYL', 'GCLT', 'KOPN', 'UMAC', 'CHGG', 'FLY', 'APPS', 'ASTL', 'ADCT',
+        'UAVS', 'EVLV', 'NG', 'TRWD', 'NAVN', 'TOI', 'PGY', 'ORBS', 'SNWR', 'BYRG',
+        'TNGX', 'TSSI', 'BLSH', 'LAR', 'OUST', 'INND', 'NUGN', 'OCLG', 'MSAI', 'LXRX',
+        'BBBY', 'CWH', 'BNAI', 'AIOT', 'TNYA', 'NNE', 'ICBU', 'NPHC', 'VNET', 'ODYC',
+        'SUIG', 'EYPT', 'SKYT', 'OMDA', 'IDGC', 'DNA', 'RXO', 'OVID', 'UVSE', 'EVEX',
+        'ARCT', 'EDIT', 'HIPH', 'RUBI', 'THER', 'STRL', 'NE', 'GNS', 'NXXT', 'CARM',
+        'KTTA', 'COSM', 'CRNC', 'CRSR', 'VSH', 'NTRR', 'ELTP', 'ATOM', 'ACDC', 'PRZO',
+        'ABQQ', 'CMPX', 'PRCH', 'ABVE', 'IMTL', 'PCVX', 'TSE', 'GHAV', 'LVVV', 'NFLX',
+        'INTC', 'WHLR', 'AAL', 'NU', 'AAPL', 'PATH', 'RIVN', 'KEY', 'QBTS', 'S',
+        'NIO', 'BAC', 'AMZN', 'SATS', 'HBAN', 'LTNC', 'META', 'MSTR', 'DKNG', 'XP',
+        'MRNA', 'HL', 'UAMY', 'CRM', 'GOOG', 'EOSE', 'LUV', 'AMC', 'STNE', 'CDE',
+        'ASTS', 'HAL', 'AEO', 'AGAE', 'NVTS', 'IVZ', 'LYFT', 'SNOW', 'OPTI', 'SPR',
+        'TTD', 'CPNG', 'WFC', 'UBER', 'PYPL', 'NKE', 'DIS', 'DRNK', 'CRCL', 'HPQ',
+        'RF', 'CNH', 'TOST', 'M', 'SBUX', 'UEC', 'FOXO', 'CRH', 'CARR', 'LCID',
+        'SCHW', 'DOW', 'EQX', 'DOCU', 'BKR', 'PSTV', 'BAX', 'IQ', 'FITB', 'QCOM',
+        'DAL', 'USB', 'ADBE', 'TWG', 'DRCT', 'MOS', 'CRBG', 'AGL', 'ADPT', 'YMM',
+        'DOCS', 'ASPI', 'RBLX', 'MGM', 'ENZC', 'GAP', 'DDOG', 'LYB', 'APA', 'BBWI',
+        'TERN', 'FTNT', 'COTY', 'NUVB', 'VIAV', 'OSCR', 'DAY', 'SANA', 'VTRS', 'ONON',
+        'JHX', 'CLVT', 'SW', 'UPS', 'GLW', 'SLG', 'GE', 'CFG', 'TFC', 'AXTA',
+        'BIDU', 'FMC', 'PTEN', 'NTNX', 'WRBY', 'HUN', 'FHN', 'SIRI', 'ASAN', 'GERN',
+        'LULU', 'ARRY', 'CYPH', 'PANW', 'DECK', 'RCAT', 'DD', 'CHYM', 'VLY', 'VCIG',
+        'SEE', 'APLS', 'JCI', 'SLS', 'PDD', 'CODI', 'PLRX', 'GEN', 'SVRA', 'CLOV',
+        'BBY', 'JBI', 'BHVN', 'ADTX', 'DXCM', 'DAVA', 'NCNO', 'GH', 'NVAX', 'ELAN',
+        'SE', 'IVVD', 'MET', 'VSTS', 'SHC', 'FNB', 'IP', 'GFS', 'SM', 'ONB',
+        'ACVA', 'VYX', 'NXDR', 'TRX', 'BEN', 'NOG', 'UA', 'DDL', 'MODG', 'MMM',
+        'QFIN', 'MAT', 'NTSK', 'KNX', 'RNA', 'FIGS', 'OVV', 'BX', 'SG', 'AMTM',
+        'ZSPC', 'ATAI', 'ODFL', 'RELY', 'PK', 'SHAK', 'UPWK', 'HWM', 'VKTX', 'XRAY',
+        'BRZE', 'OCUL', 'DINO', 'SRPT', 'CNM', 'DT', 'BK', 'PRO', 'VNO', 'ALLY',
+        'SAIL', 'VERA', 'BMBL', 'FND', 'EFX', 'ECVT', 'WT', 'ALLO', 'RZLT', 'NVST',
+        'COLB', 'WDAY', 'OCGN', 'NOV', 'PSX', 'ICTY', 'NNDM', 'FLUT', 'ITRM', 'NVCR',
+        'CWK', 'GOSS', 'SGHC', 'NXPI', 'VLO', 'PD', 'NEXT', 'EXEL', 'GPN', 'CAT',
+        'FTI', 'A', 'JANX', 'PTLO', 'BLDR', 'TPR', 'ACAD', 'OS', 'STT', 'LX',
+        'YETI', 'ASB', 'OTLK', 'DXC', 'BTSG', 'CXM', 'OMI', 'PBI', 'AXP', 'SHMN',
+        'NUE', 'ANNX', 'DKS', 'BBIO', 'CTRI', 'BXP', 'FSLR', 'ANF', 'TXT', 'BSFC',
+        'GEVO', 'OPTU', 'SPOT', 'EQH', 'FUN', 'PBF', 'NXT', 'TRU', 'AROC', 'ETN',
+        'COGT', 'TEL', 'APTV', 'VIK', 'BGC', 'ZS', 'AVPT', 'ASO', 'LTH', 'EXPE',
+        'FTRE', 'RERE', 'ESI', 'VOYG', 'WKHS', 'IONS', 'DNOW', 'COUR', 'J', 'TREX',
+        'LEVI', 'DAN', 'EMN', 'CMC', 'AVDL', 'LNC', 'BLMN', 'IR', 'ALTO', 'MBC',
+        'CRMD', 'MAR', 'CADE', 'CMPS', 'KD', 'DV', 'AUTL', 'EMR', 'TVTX', 'CHA',
+        'ALGN', 'NTAP', 'KTOS', 'CNXC', 'TROW', 'FBIN', 'KGS', 'DAWN', 'GBTG', 'SNPS',
+        'HDSN', 'WLK', 'IRM', 'OLPX', 'ESTC', 'MTVA', 'CGNX', 'UDMY', 'STLD', 'MPC',
+        'CSTM', 'PSNL', 'SEMR', 'ZION', 'MTSI', 'EYE', 'JAMF', 'SBLK', 'ORIC', 'RES',
+        'BEAT', 'PNC', 'TLN', 'KULR', 'SPT', 'CNDT', 'SBH', 'CAL', 'CDNS', 'NNOX',
+        'APG', 'LU', 'KURA', 'NN', 'GLOB', 'VPLM', 'EB', 'PII', 'GOGO', 'MAC',
+        'CRVS', 'AUB', 'ALSN', 'CDW', 'FULT', 'SCCO', 'LFMD', 'FOUR', 'SARO', 'NRIX',
+        'SIG', 'GTX', 'WOOF', 'AMPL', 'NAMS', 'FIBK', 'TRMB', 'TUYA', 'CVLT', 'PEB',
+        'OC', 'XLO', 'ALKT', 'FLYW', 'GPCR', 'TT', 'HAIN', 'LFWD', 'ZUMZ', 'MC',
+        'RJF', 'NSP', 'IMMX', 'HP', 'SNSE', 'AMLX', 'SXC', 'BILI', 'HAS', 'ISRG',
+        'HUBG', 'THO', 'AVXL', 'IAS', 'CLDX', 'CARG', 'CMI', 'PLAY', 'OII', 'FYNN',
+        'HAYW', 'CRI', 'BTCS', 'POWI', 'SFRX', 'JPTE', 'FDX', 'DK', 'GSAT', 'CHRS',
+        'NMRK', 'LAB', 'TWST', 'WSM', 'RRX', 'GORO', 'INO', 'BX', 'APH', 'ANET',
+        'BN', 'KKR', 'IBKR', 'DELL', 'BAM', 'CRH', 'NU', 'SE', 'GLW', 'JCI',
+        'TFC', 'STX', 'WDC', 'MET', 'CPNG', 'CARR', 'DAL', 'GEHC', 'XYZ', 'SYM',
+        'UAL', 'CCL', 'SNDK', 'ODFL', 'CRDO', 'TER', 'HPE', 'FITB', 'SYF', 'COHR',
+        'HBAN', 'IOT', 'OWL', 'HPQ', 'CFG', 'SATS', 'LITE', 'PSTG', 'FLEX', 'RF',
+        'AFRM', 'GFS', 'GRAB', 'KEY', 'TOST', 'IP', 'LUV', 'SW', 'RBRK', 'VG',
+        'CRBG', 'ONON', 'ALB', 'DECK', 'LYB', 'ENTG', 'DT', 'GH', 'ALLY', 'NTNX',
+        'IREN', 'BEN', 'YMM', 'CNH', 'IVZ', 'JHX', 'HL', 'AA', 'SAIL', 'FHN',
+        'DAY', 'EQX', 'ELAN', 'RNA', 'LSCC', 'OVV', 'AMKR', 'BZ', 'CDE', 'GAP',
+        'CNM', 'MGM', 'BROS', 'APA', 'MBLY', 'XP', 'FRMI', 'DINO', 'CHYM', 'ONB',
+        'DOCS', 'AUR', 'LUMN', 'ARWR', 'KNX', 'CAI', 'CFLT', 'NTSK', 'TTMI', 'MOS',
+        'AMTM', 'CLF', 'FIGR', 'FND', 'VNO', 'UEC', 'MAT', 'VLY', 'MIR', 'GTLB',
+        'AXTA', 'PRAX', 'CAVA', 'SEE', 'M', 'WULF', 'FNB', 'LMND', 'CORZ', 'EOSE',
+        'ELF', 'SHC', 'CZR', 'S', 'SPR', 'ZETA', 'FLNC', 'VKTX', 'VIAV', 'STNE',
+        'STUB', 'VSCO', 'AEO', 'BBWI', 'FRSH', 'BRZE', 'ASAN', 'SHAK', 'SLG', 'LBRT',
+        'GTM', 'RUM', 'APLS', 'BBAI', 'NUVB', 'DYN', 'VERA', 'RELY', 'BTDR', 'NCNO',
+        'PTON', 'OCUL', 'TERN', 'UPWK', 'CRGY', 'NOG', 'ZIM', 'PTEN', 'CLVT', 'OLN',
+        'SM', 'WRBY', 'ADPT', 'QFIN', 'IE', 'PK', 'LUNR', 'ENVX', 'FIGS', 'LAC',
+        'AMPX', 'HIMX', 'FSLY', 'ATAI', 'ACVA', 'TSHA', 'SANA', 'SVRA', 'WVE', 'TE',
+        'BHVN', 'AESI', 'CAPR', 'ULCC', 'BORR', 'PRO', 'METC', 'TDUP', 'ALIT',
+        'SGML', 'INDI', 'SLDP', 'VSTS', 'RZLV', 'UAMY', 'RR', 'JBI', 'KODK', 'GERN',
+        'SOC', 'POET', 'SES', 'SG', 'BFLY', 'NXDR', 'ASST', 'DNUT', 'ASPI', 'BTBT',
+        'NRGV', 'PRME', 'EVTL', 'VTYX', 'IVVD', 'BYND', 'AXTI', 'ABAT', 'ABSI', 'CAN',
+        'DDL', 'NFE', 'CODI', 'BMBL', 'VFF', 'SMRT', 'SMX', 'AGL', 'INVZ', 'CHPT',
+        'NUAI', 'TRX', 'MIST', 'NAKA', 'AIIO', 'DFDV', 'UPXI', 'IXHL', 'GANX', 'SRFM',
+        'DFLI', 'BMEA', 'PLRX', 'LAZR', 'RVPH', 'AIRE', 'CMBM', 'ATCH', 'TXTM', 'APLT',
+        'TGL', 'YYAI', 'RNWF', 'ZSPC', 'LTNC', 'ASBP', 'TDIC', 'HWH', 'FAT', 'AMZE',
+        'VCIG', 'NBRI', 'TWG', 'DRCT', 'APRU', 'ADTX', 'SURY', 'DRNK', 'GRLF', 'FITY',
+        'JFBR', 'CATV', 'IVP', 'AKAN', 'MWWC', 'TKMO', 'STEK', 'FORZ', 'FOXO', 'RONN',
+        'NEOM', 'USNL', 'TXHE'
+    ]
+    return sorted(list(set(tickers)))
+
+
+# 2. 参数设置 (日级别)
+SCAN_DAYS = 3
+TIME_FRAME_DESCRIPTION = "日级别"
+DATA_PERIOD = "1y"
+INTERVAL = "1d"
+
+length_ema_short = 12
+length_ema_long = 26
+length_ema_signal = 9
+
+
+def get_cd_signals(df_input: pd.DataFrame) -> pd.DataFrame:
+    df = df_input.copy()
+    df['close'] = df['close'].astype(float)
+
+    def ema(s, l): return s.ewm(span=l, adjust=False).mean()
+
+    df['D'] = ema(df['close'], length_ema_short) - ema(df['close'], length_ema_long)
+    df['A'] = ema(df['D'], length_ema_signal)
+    df['M'] = (df['D'] - df['A']) * 2
+
+    cols = ['N1', 'MM1', 'CC1', 'DIFL1', 'CC2', 'DIFL2', 'CC3', 'DIFL3', 'AAA', 'BBB', 'CCC', 'JJJ', 'DXDX']
+    for col in cols:
+        df[col] = False if col in ['AAA', 'BBB', 'CCC', 'JJJ', 'DXDX'] else np.nan
+        if isinstance(df.iloc[0].get(col), bool):
+            df[col] = df[col].astype(bool)
+
+    m_cd = (df['M'].shift(1) >= 0) & (df['M'] < 0)
+    m_cu = (df['M'].shift(1) <= 0) & (df['M'] > 0)
+
+    for i in range(1, len(df)):
+        try:
+            s_d = m_cd.iloc[:i + 1]
+            if s_d.any():
+                df.loc[df.index[i], 'N1'] = i - df.index.get_loc(s_d[s_d].index[-1])
+        except IndexError:
+            pass
+
+        try:
+            s_u = m_cu.iloc[:i + 1]
+            if s_u.any():
+                df.loc[df.index[i], 'MM1'] = i - df.index.get_loc(s_u[s_u].index[-1])
+        except IndexError:
+            pass
+
+        n1 = df.at[df.index[i], 'N1']
+        mm1 = df.at[df.index[i], 'MM1']
+
+        if pd.notna(n1):
+            l = int(n1) + 1
+            w = df.iloc[max(0, i - l + 1):i + 1]
+            df.loc[df.index[i], 'CC1'] = w['close'].min()
+            df.loc[df.index[i], 'DIFL1'] = w['D'].min()
+        else:
+            df.loc[df.index[i], 'CC1'] = df.at[df.index[i], 'close']
+            df.loc[df.index[i], 'DIFL1'] = df.at[df.index[i], 'D']
+
+        if pd.notna(mm1):
+            o = int(mm1) + 1
+            if i - o >= 0:
+                prev_idx = df.index[i - o]
+                df.loc[df.index[i], 'CC2'] = df.at[prev_idx, 'CC1']
+                df.loc[df.index[i], 'DIFL2'] = df.at[prev_idx, 'DIFL1']
+                df.loc[df.index[i], 'CC3'] = df.at[prev_idx, 'CC2']
+                df.loc[df.index[i], 'DIFL3'] = df.at[prev_idx, 'DIFL2']
+            else:
+                c, d = df.at[df.index[i], 'close'], df.at[df.index[i], 'D']
+                df.loc[df.index[i], 'CC2'] = c
+                df.loc[df.index[i], 'DIFL2'] = d
+                df.loc[df.index[i], 'CC3'] = c
+                df.loc[df.index[i], 'DIFL3'] = d
+        else:
+            c, d = df.at[df.index[i], 'close'], df.at[df.index[i], 'D']
+            df.loc[df.index[i], 'CC2'] = c
+            df.loc[df.index[i], 'DIFL2'] = d
+            df.loc[df.index[i], 'CC3'] = c
+            df.loc[df.index[i], 'DIFL3'] = d
+
+        m_p = df.at[df.index[i - 1], 'M']
+        d_c = df.at[df.index[i], 'D']
+
+        aaa = (df.at[df.index[i], 'CC1'] < df.at[df.index[i], 'CC2']) & (df.at[df.index[i], 'DIFL1'] > df.at[df.index[i], 'DIFL2']) & (m_p < 0) & (d_c < 0)
+        bbb = (df.at[df.index[i], 'CC1'] < df.at[df.index[i], 'CC3']) & (df.at[df.index[i], 'DIFL1'] < df.at[df.index[i], 'DIFL2']) & (df.at[df.index[i], 'DIFL1'] > df.at[df.index[i], 'DIFL3']) & (m_p < 0) & (d_c < 0)
+        ccc = (aaa | bbb) & (d_c < 0)
+
+        c_p = df.at[df.index[i - 1], 'CCC']
+        d_p = df.at[df.index[i - 1], 'D']
+        jjj = c_p & (abs(d_p) >= abs(d_c) * 1.01)
+        j_p = df.at[df.index[i - 1], 'JJJ']
+
+        df.loc[df.index[i], 'AAA'] = aaa
+        df.loc[df.index[i], 'BBB'] = bbb
+        df.loc[df.index[i], 'CCC'] = ccc
+        df.loc[df.index[i], 'JJJ'] = jjj
+        df.loc[df.index[i], 'DXDX'] = (not j_p and jjj)
+
+    return df
+
+
+def run_screener(max_stocks=None):
+    found_signals = []
+    top_stocks_to_scan = get_us_target_tickers()
+    if max_stocks:
+        top_stocks_to_scan = top_stocks_to_scan[:max_stocks]
+
+    scan_start_date = datetime.now() - timedelta(days=SCAN_DAYS)
+
+    for i, ticker in enumerate(top_stocks_to_scan):
+        try:
+            df_raw = yf.download(ticker, period=DATA_PERIOD, interval=INTERVAL, progress=False, auto_adjust=False)
+            time.sleep(0.05)
+
+            if df_raw is None or df_raw.empty:
+                continue
+
+            if isinstance(df_raw.columns, pd.MultiIndex):
+                df_raw.columns = df_raw.columns.get_level_values(0)
+            df_raw.columns = [str(c).lower() for c in df_raw.columns]
+
+            df_raw.index = pd.to_datetime(df_raw.index)
+            if df_raw.index.tz is not None:
+                df_raw.index = df_raw.index.tz_localize(None)
+
+            if 'close' not in df_raw.columns:
+                continue
+
+            if len(df_raw) < 50:
+                continue
+
+            result_df = get_cd_signals(df_raw)
+            recent_signals = result_df[result_df.index >= scan_start_date]
+            triggered = recent_signals[recent_signals['DXDX'] == True]
+
+            if not triggered.empty:
+                for timestamp, row in triggered.iterrows():
+                    found_signals.append({
+                        "ticker": ticker,
+                        "timeframe": TIME_FRAME_DESCRIPTION,
+                        "signal_date": timestamp.strftime('%Y-%m-%d'),
+                        "close": float(row['close']) if pd.notna(row.get('close')) else None
+                    })
+        except Exception:
+            continue
+
+    return found_signals
+
+
+if __name__ == "__main__":
+    max_stocks = int(sys.argv[1]) if len(sys.argv) > 1 else None
+    signals = run_screener(max_stocks=max_stocks)
+    print(json.dumps(signals, ensure_ascii=False))

@@ -1,0 +1,100 @@
+{
+  "nav": {
+    "brand": "NX/CD Marketplace",
+    "home": "Home",
+    "indicators": "Indicators",
+    "screener": "Screener",
+    "alerts": "Alerts",
+    "sectorStrength": "Sector Strength",
+    "quant": "Quant Trading",
+    "contact": "Contact",
+    "comingSoon": "Soon"
+  },
+  "common": {
+    "buyNow": "Buy Now",
+    "subscribe": "Subscribe",
+    "startScan": "Start Scan",
+    "scanning": "Scanning...",
+    "all": "All",
+    "back": "Back",
+    "download": "Download File",
+    "wechat": "WeChat Pay",
+    "paypal": "PayPal",
+    "webhook": "Discord Webhook URL",
+    "email": "Email",
+    "name": "Name",
+    "message": "Message",
+    "send": "Send Message",
+    "sending": "Sending..."
+  },
+  "home": {
+    "title": "Catch Every Bottom-Fishing Opportunity",
+    "subtitle": "NX/CD indicators plus real-time scan alerts for disciplined retail traders.",
+    "shopCta": "Shop Indicators",
+    "screenerCta": "Explore Screener",
+    "previewTitle": "Featured Indicators"
+  },
+  "indicators": {
+    "title": "Indicator Marketplace",
+    "subtitle": "Professional trading indicators for US, Japan, and Hong Kong equities.",
+    "bottom": "Bottom Indicators",
+    "volume": "Volume/Price",
+    "classic": "Classic",
+    "features": "Core Features",
+    "markets": "Markets"
+  },
+  "screener": {
+    "title": "Multi-Market Screener",
+    "subtitle": "Scan 415 US stocks for recent two-day bottom signals.",
+    "buy": "Buy Now $99",
+    "fourHour": "4H Bottom",
+    "daily": "Daily Bottom",
+    "weekly": "Weekly Bottom",
+    "us": "US (415)",
+    "jp": "Japan",
+    "hk": "Hong Kong",
+    "empty": "No bottom signals detected"
+  },
+  "alerts": {
+    "title": "Real-Time Alerts",
+    "subtitle": "Monitor 415 US stocks with seven bottom-alert types.",
+    "subscribe": "Subscribe $9.9/mo",
+    "us": "US Alerts",
+    "hk": "HK Alerts",
+    "waiting": "Waiting for live signals..."
+  },
+  "sector": {
+    "title": "Sector Strength",
+    "subtitle": "Track US and Hong Kong sector rotation and find current leaders.",
+    "subscribe": "Subscribe $9.9/mo",
+    "us": "US Sectors",
+    "hk": "HK Sectors"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Send a question or join the Discord community for support.",
+    "discord": "Discord Community",
+    "discordCopy": "Join Discord for real-time support and updates.",
+    "success": "Message sent"
+  },
+  "payment": {
+    "title": "Scan to Pay",
+    "confirm": "I Have Paid, Continue",
+    "processing": "Processing...",
+    "secure": "Confirm only after completing WeChat or PayPal transfer."
+  },
+  "purchaseSuccess": {
+    "title": "Purchase Successful!",
+    "thanks": "Thank you for buying",
+    "notice": "The order has been sent to the administrator.",
+    "support": "Contact support@nxcduk.com if you need help."
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "home": "Back Home"
+  },
+  "footer": {
+    "copyright": "NX/CD",
+    "discord": "Discord Community"
+  }
+}

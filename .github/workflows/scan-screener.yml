@@ -1,0 +1,56 @@
+name: Screener Scan
+
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+    inputs:
+      max_stocks:
+        description: Max stocks to scan (empty = all)
+        required: false
+        type: number
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/nxcd-marketplace-mvp
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run screener
+        run: |
+          ARGS=""
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ inputs.max_stocks }}" ]; then
+            ARGS="${{ inputs.max_stocks }}"
+          fi
+          python scripts/screener.py $ARGS > src/data/scan-results.json
+          echo "Scan results:"
+          cat src/data/scan-results.json
+
+      - name: Commit results
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "bot@nxcd.com"
+          git add src/data/scan-results.json
+          if git diff --cached --quiet; then
+            echo "No new signals found."
+          else
+            git commit -m "chore: update screener scan results [skip ci]"
+            git push
+          fi
+
+      - name: Trigger Cloudflare Pages redeploy
+        run: |
+          curl -s -X POST "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CF_ACCOUNT_ID }}/pages/projects/nxcd-indicator-marketplace/deployments" \
+            -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"branch":"codex/nxcd-marketplace-mvp"}'

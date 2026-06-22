@@ -1,0 +1,100 @@
+{
+  "nav": {
+    "brand": "NX/CD 商城",
+    "home": "首页",
+    "indicators": "指标",
+    "screener": "选股器",
+    "alerts": "警报",
+    "sectorStrength": "板块走强",
+    "quant": "量化交易",
+    "contact": "联系我们",
+    "comingSoon": "开发中"
+  },
+  "common": {
+    "buyNow": "立即购买",
+    "subscribe": "订阅",
+    "startScan": "开始扫描",
+    "scanning": "扫描中...",
+    "all": "全部",
+    "back": "返回",
+    "download": "下载文件",
+    "wechat": "微信支付",
+    "paypal": "PayPal",
+    "webhook": "Discord Webhook URL",
+    "email": "邮箱",
+    "name": "姓名",
+    "message": "消息",
+    "send": "发送消息",
+    "sending": "发送中..."
+  },
+  "home": {
+    "title": "精准捕捉每一次抄底机会",
+    "subtitle": "NX/CD 指标 + 实时扫描警报，让韭菜不再被收割",
+    "shopCta": "立即选购指标",
+    "screenerCta": "了解选股器",
+    "previewTitle": "热门指标"
+  },
+  "indicators": {
+    "title": "指标商城",
+    "subtitle": "选择适合美股、日股、港股的专业交易指标。",
+    "bottom": "抄底指标",
+    "volume": "量价指标",
+    "classic": "常用指标",
+    "features": "核心功能",
+    "markets": "适用市场"
+  },
+  "screener": {
+    "title": "多市场选股器",
+    "subtitle": "扫描美股 415 只股票最近 2 日抄底信号。",
+    "buy": "立即购买 $99",
+    "fourHour": "4小时抄底",
+    "daily": "日级别抄底",
+    "weekly": "周级别抄底",
+    "us": "美股(415只)",
+    "jp": "日股",
+    "hk": "港股",
+    "empty": "未检测到抄底信号"
+  },
+  "alerts": {
+    "title": "实时警报",
+    "subtitle": "美股 415 只实时监控，覆盖七种抄底警报类型。",
+    "subscribe": "订阅 $9.9/月",
+    "us": "美股(415只)警报",
+    "hk": "港股警报",
+    "waiting": "等待实时信号..."
+  },
+  "sector": {
+    "title": "板块走强",
+    "subtitle": "追踪美股、港股板块轮动，发现当前强势方向。",
+    "subscribe": "订阅 $9.9/月",
+    "us": "美股板块",
+    "hk": "港股板块"
+  },
+  "contact": {
+    "title": "联系我们",
+    "subtitle": "提交问题或加入 Discord 社区获取支持。",
+    "discord": "Discord 社区",
+    "discordCopy": "加入 Discord 获取实时支持和更新。",
+    "success": "消息已发送"
+  },
+  "payment": {
+    "title": "扫码付款",
+    "confirm": "我已付款，继续下载",
+    "processing": "处理中...",
+    "secure": "请使用微信或 PayPal 完成转账后再确认。"
+  },
+  "purchaseSuccess": {
+    "title": "购买成功！",
+    "thanks": "感谢您购买",
+    "notice": "订单已通知管理员处理。",
+    "support": "如有问题请联系 support@nxcduk.com"
+  },
+  "notFound": {
+    "title": "页面走丢了",
+    "home": "返回首页"
+  },
+  "footer": {
+    "copyright": "NX/CD",
+    "discord": "Discord 社区"
+  }
+}
