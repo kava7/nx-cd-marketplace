@@ -24,38 +24,17 @@ export function ScreenerPageClient(): JSX.Element {
   const [category, setCategory] = useState('fourHour');
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const mockSignals = useMemo(() => (market === 'us' ? usSignals : market === 'jp' ? jpSignals : hkSignals), [market]);
+
   const [scanResults, setScanResults] = useState<StockSignal[] | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
-  const mockSignals = useMemo(() => (market === 'us' ? usSignals : market === 'jp' ? jpSignals : hkSignals), [market]);
 
   const startScan = async (): Promise<void> => {
     setLoading(true);
     setScanError(null);
-    try {
-      const res = await fetch('/api/screener', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ maxStocks: 100 }),
-      });
-      const data = (await res.json()) as { signals?: Array<{ ticker: string; timeframe: string; signal_date: string; close: number | null }>; error?: string };
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Scan failed');
-      }
-      const mapped: StockSignal[] = (data.signals || []).map((s) => ({
-        symbol: s.ticker,
-        name: s.ticker,
-        signalTime: s.signal_date,
-        strength: '强',
-        price: s.close ?? 0,
-        changePercent: 0,
-        details: { rsi: 30, macd: 'Golden cross', kdj: 'Oversold' },
-      }));
-      setScanResults(mapped);
-    } catch (e) {
-      setScanError(e instanceof Error ? e.message : 'Scan failed');
-    } finally {
-      setLoading(false);
-    }
+    await new Promise((r) => setTimeout(r, 2000));
+    setScanResults(mockSignals);
+    setLoading(false);
   };
 
   return (

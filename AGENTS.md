@@ -125,6 +125,25 @@ npx serve out          # Preview static export locally
 - `next/dynamic` for heavy components (chart libraries, alert log).
 - Keep bundle size small — no unnecessary dependencies.
 
+### Real Data Pipeline (Screener)
+
+The screener fetches real US stock data via Yahoo Finance. Two modes:
+
+1. **Dev mode** (`npm run dev`): API route at `/api/screener` spawns Python (`scripts/screener.py`), runs NX/CD indicator algorithm, returns live results. Requires Python + `pip install -r requirements.txt`.
+
+2. **Production (static export):** GitHub Actions workflow (`.github/workflows/scan-screener.yml`) runs daily on `codex/nxcd-marketplace-mvp` branch:
+   - Cron: `0 10 * * *` (UTC)
+   - Installs Python deps → runs `python scripts/screener.py`
+   - Outputs JSON to `src/data/scan-results.json` (array of `{ticker, timeframe, signal_date, close}`)
+   - Commits results → triggers Cloudflare Pages redeployment
+   - Manual trigger via `workflow_dispatch` with optional `max_stocks` input
+
+   **Secrets required in GitHub:**
+   - `CF_ACCOUNT_ID` — Cloudflare account ID
+   - `CF_API_TOKEN` — Cloudflare API token with Pages write access
+
+   Fallback: when `scan-results.json` is empty or API unavailable, mock data in `src/data/mock-signals-{us,jp,hk}.ts` is used.
+
 ### Security
 
 - No secrets, API keys, or tokens in code. Use `NEXT_PUBLIC_*` env vars only for public-facing config (e.g., `NEXT_PUBLIC_DISCORD_WEBHOOK_URL`).
