@@ -8,7 +8,7 @@ import { useLocale } from '@/contexts/LocaleContext';
 import { formatPrice } from '@/lib/formatPrice';
 import { localizePath } from '@/lib/paths';
 import { purchase } from '@/lib/purchase';
-import type { Market, StockSignal } from '@/types';
+import type { Market, SignalStrength, StockSignal } from '@/types';
 
 import { MarketTabs } from './MarketTabs';
 import { PaymentModal } from './PaymentModal';
@@ -25,32 +25,33 @@ interface Props {
   initialSignals?: ScanResult[];
 }
 
+function computeSignalLevel(close: number): SignalStrength {
+  if (close < 1) return '强';
+  if (close < 10) return '中';
+  return '低';
+}
+
 export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
   const { locale, t } = useLocale();
   const router = useRouter();
   const [market, setMarket] = useState<Market>('us');
   const [category, setCategory] = useState('daily');
   const [scanning, setScanning] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const buildStockSignals = (data: ScanResult[]): StockSignal[] =>
-    data.map((s) => ({
+  const realSignals = useMemo<StockSignal[] | null>(() => {
+    if (!initialSignals || initialSignals.length === 0) return null;
+    return initialSignals.map((s) => ({
       symbol: s.ticker,
       name: s.ticker,
       signalTime: s.signal_date,
-      strength: '强' as const,
+      strength: computeSignalLevel(s.close ?? 0),
       price: s.close ?? 0,
       changePercent: 0,
-      details: { rsi: 30, macd: 'Golden cross', kdj: 'Oversold' },
+      details: { rsi: 0, macd: '', kdj: '' },
     }));
-
-  const realSignals = useMemo<StockSignal[] | null>(
-    () =>
-      initialSignals && initialSignals.length > 0
-        ? buildStockSignals(initialSignals)
-        : null,
-    [initialSignals],
-  );
+  }, [initialSignals]);
 
   const hasRealData = realSignals !== null;
 
@@ -66,6 +67,7 @@ export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
     setScanning(true);
     await new Promise((r) => setTimeout(r, 2000));
     setScanning(false);
+    setShowResults(true);
   };
 
   return (
@@ -103,11 +105,17 @@ export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
           {scanning ? t('common.scanning') : t('common.startScan')}
         </button>
 
-        {hasRealData ? (
-          <SignalTable locale={locale} signals={realSignals!} />
+        {showResults ? (
+          hasRealData ? (
+            <SignalTable locale={locale} signals={realSignals!} />
+          ) : (
+            <p className="py-8 text-center text-sm text-[#848E9C]">
+              {locale === 'zh' ? '暂未扫描到信号，系统将定时自动扫描' : 'No signals yet. Auto-scan runs on schedule.'}
+            </p>
+          )
         ) : (
           <p className="py-8 text-center text-sm text-[#848E9C]">
-            {locale === 'zh' ? '暂未扫描到信号，系统将定时自动扫描' : 'No signals yet. Auto-scan runs on schedule.'}
+            {locale === 'zh' ? '点击「开始扫描」查看 NX/CD 抄底信号' : 'Click "Start Scan" to view NX/CD bottom-fishing signals.'}
           </p>
         )}
       </section>
