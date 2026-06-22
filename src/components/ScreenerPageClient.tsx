@@ -17,7 +17,18 @@ import { MarketTabs } from './MarketTabs';
 import { PaymentModal } from './PaymentModal';
 import { SignalTable } from './SignalTable';
 
-export function ScreenerPageClient(): JSX.Element {
+interface ScanResult {
+  ticker: string;
+  timeframe: string;
+  signal_date: string;
+  close: number | null;
+}
+
+interface Props {
+  initialSignals?: ScanResult[];
+}
+
+export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
   const { locale, t } = useLocale();
   const router = useRouter();
   const [market, setMarket] = useState<Market>('us');
@@ -26,8 +37,34 @@ export function ScreenerPageClient(): JSX.Element {
   const [open, setOpen] = useState(false);
   const mockSignals = useMemo(() => (market === 'us' ? usSignals : market === 'jp' ? jpSignals : hkSignals), [market]);
 
-  const [scanResults, setScanResults] = useState<StockSignal[] | null>(null);
+  const buildInitialStockSignals = (data: ScanResult[]): StockSignal[] =>
+    data.map((s) => ({
+      symbol: s.ticker,
+      name: s.ticker,
+      signalTime: s.signal_date,
+      strength: '强' as const,
+      price: s.close ?? 0,
+      changePercent: 0,
+      details: { rsi: 30, macd: 'Golden cross', kdj: 'Oversold' },
+    }));
+
+  const [scanResults, setScanResults] = useState<StockSignal[] | null>(
+    initialSignals && initialSignals.length > 0 ? buildInitialStockSignals(initialSignals) : null,
+  );
   const [scanError, setScanError] = useState<string | null>(null);
+  const hasRealData = initialSignals && initialSignals.length > 0;
+
+  const switchMarket = (m: Market): void => {
+    setMarket(m);
+    setScanResults(null);
+    setScanError(null);
+  };
+
+  const switchCategory = (c: string): void => {
+    setCategory(c);
+    setScanResults(null);
+    setScanError(null);
+  };
 
   const startScan = async (): Promise<void> => {
     setLoading(true);
@@ -51,7 +88,7 @@ export function ScreenerPageClient(): JSX.Element {
       <section className="mt-8 space-y-6 rounded-xl border border-[#2B3139] bg-[#1E2329] p-6">
         <MarketTabs
           activeTab={category}
-          onChange={setCategory}
+          onChange={switchCategory}
           tabs={[
             { key: 'fourHour', label: t('screener.fourHour') },
             { key: 'daily', label: t('screener.daily') },
@@ -60,7 +97,7 @@ export function ScreenerPageClient(): JSX.Element {
         />
         <MarketTabs
           activeTab={market}
-          onChange={setMarket}
+          onChange={switchMarket}
           tabs={[
             { key: 'us', label: t('screener.us') },
             { key: 'jp', label: t('screener.jp') },
@@ -72,10 +109,16 @@ export function ScreenerPageClient(): JSX.Element {
           {loading ? t('common.scanning') : t('common.startScan')}
         </button>
         {scanError && <p className="text-sm text-[#F6465D]">{scanError}</p>}
-        {scanResults && scanResults.length === 0 && !scanError && (
+        {!scanResults && !loading && !scanError && !hasRealData && (
+          <p className="py-8 text-center text-sm text-[#848E9C]">{locale === 'zh' ? '点击「开始扫描」查看模拟抄底信号' : 'Click "Start Scan" to see mock bottom-fishing signals'}</p>
+        )}
+        {!scanResults && !loading && !scanError && hasRealData && (
+          <p className="py-8 text-center text-sm text-[#0ECB81]">{locale === 'zh' ? '已加载真实扫描数据，点击「开始扫描」重新扫描' : 'Real scan data loaded. Click "Start Scan" to re-scan.'}</p>
+        )}
+        {scanResults && scanResults.length === 0 && (
           <p className="text-sm text-[#848E9C]">{locale === 'zh' ? '未扫描到信号' : 'No signals found'}</p>
         )}
-        <SignalTable locale={locale} signals={scanResults ?? mockSignals} />
+        {scanResults && scanResults.length > 0 && <SignalTable locale={locale} signals={scanResults} />}
       </section>
       <PaymentModal
         amount={99}
