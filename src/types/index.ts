@@ -15,10 +15,13 @@ export interface Product {
   features: Record<Locale, string[]>;
 }
 
+export type SignalAction = '抄底' | '卖出';
+
 export interface StockSignal {
   symbol: string;
   name: string;
   signalTime: string;
+  signal: SignalAction;
   strength: SignalStrength;
   price: number;
   changePercent: number;

@@ -5,6 +5,10 @@ import { useMemo } from 'react';
 import type { Locale, StockSignal } from '@/types';
 
 const strengthRank: Record<StockSignal['strength'], number> = { 强: 3, 中: 2, 低: 1 };
+const signalColor: Record<StockSignal['signal'], string> = {
+  '抄底': 'bg-[#0ECB81]/15 text-[#0ECB81]',
+  '卖出': 'bg-[#F6465D]/15 text-[#F6465D]',
+};
 
 export function SignalTable({ locale, signals }: { locale: Locale; signals: StockSignal[] }): JSX.Element {
   const sortedSignals = useMemo(
@@ -19,6 +23,7 @@ export function SignalTable({ locale, signals }: { locale: Locale; signals: Stoc
           <tr>
             <th className="px-4 py-3">{locale === 'zh' ? '股票代码' : 'Symbol'}</th>
             <th className="px-4 py-3">{locale === 'zh' ? '信号时间' : 'Signal Time'}</th>
+            <th className="px-4 py-3">{locale === 'zh' ? '信号' : 'Signal'}</th>
             <th className="px-4 py-3">{locale === 'zh' ? '信号级别' : 'Signal Level'}</th>
           </tr>
         </thead>
@@ -27,6 +32,11 @@ export function SignalTable({ locale, signals }: { locale: Locale; signals: Stoc
             <tr className="border-t border-[#2B3139]" key={signal.symbol}>
               <td className="px-4 py-3 font-mono font-medium text-white">{signal.symbol}</td>
               <td className="px-4 py-3 font-mono text-[#848E9C]">{signal.signalTime}</td>
+              <td className="px-4 py-3">
+                <span className={`rounded px-2 py-1 text-xs ${signalColor[signal.signal]}`}>
+                  {signal.signal}
+                </span>
+              </td>
               <td className="px-4 py-3">
                 <span className={`rounded px-2 py-1 text-xs ${signal.strength === '强' ? 'bg-[#0ECB81]/15 text-[#0ECB81]' : signal.strength === '中' ? 'bg-[#FFB800]/15 text-[#FFB800]' : 'bg-[#848E9C]/15 text-[#848E9C]'}`}>
                   {signal.strength}

@@ -1,3 +1,4 @@
+import argparse
 import json
 import sys
 import time
@@ -13,8 +14,8 @@ import yfinance as yf
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
+# --- GFW patch (same as before) ---
 def _is_yahoo_blocked() -> bool:
-    """Quick check if Yahoo Finance API is reachable (not blocked by GFW)."""
     try:
         resp = _requests.get(
             "https://query2.finance.yahoo.com/v8/finance/chart/AAPL",
@@ -29,8 +30,6 @@ def _is_yahoo_blocked() -> bool:
         return True
 
 
-# Only apply the monkey-patch if Yahoo Finance is blocked (e.g. running in China).
-# On GitHub Actions (US servers), yfinance works out of the box.
 _USE_PATCH = _is_yahoo_blocked()
 
 if _USE_PATCH:
@@ -77,15 +76,12 @@ if _USE_PATCH:
             return pd.DataFrame()
 
     yf.download = _patched_download
-    print(
-        f"Yahoo Finance blocked — using curl_cffi patch ({len(yf.download.__name__)} chars)",
-        file=sys.stderr,
-    )
+    print("Yahoo Finance blocked — using curl_cffi patch", file=sys.stderr)
 else:
     print("Yahoo Finance reachable — using yfinance directly", file=sys.stderr)
 
 
-# --- 选股列表 (美股) ---
+# --- Ticker lists ---
 def get_us_target_tickers():
     return [
         "KHC",
@@ -506,12 +502,25 @@ def get_us_target_tickers():
     ]
 
 
-# 2. 参数设置 (日级别)
-SCAN_DAYS = 5
-TIME_FRAME_DESCRIPTION = "日级别"
-DATA_PERIOD = "1y"
-INTERVAL = "1d"
+def get_jp_target_tickers():
+    return ["TM", "HMC", "SONY", "MUFG", "SMFG", "MFG", "NMR", "NSANY"]
 
+
+def get_hk_target_tickers():
+    return ["TCEHY", "BABA", "JD", "PDD", "BIDU", "NTES", "XPEV", "NIO", "LI", "BEKE"]
+
+
+def get_tickers(market: str):
+    if market == "us":
+        return get_us_target_tickers()
+    elif market == "jp":
+        return get_jp_target_tickers()
+    elif market == "hk":
+        return get_hk_target_tickers()
+    raise ValueError(f"Unknown market: {market}")
+
+
+# --- NX/CD Signal logic (unchanged) ---
 length_ema_short = 12
 length_ema_long = 26
 length_ema_signal = 9
@@ -631,23 +640,39 @@ def get_cd_signals(df_input: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def run_screener(max_stocks=None):
+# --- Timeframe config ---
+TIMEFRAME_CONFIG = {
+    "4h": {"period": "2mo", "interval": "60m", "scan_days": 2, "label": "4小时抄底"},
+    "daily": {"period": "1y", "interval": "1d", "scan_days": 5, "label": "日级别抄底"},
+    "weekly": {
+        "period": "3y",
+        "interval": "1wk",
+        "scan_days": 28,
+        "label": "周级别抄底",
+    },
+}
+
+
+def run_screener(max_stocks=None, market="us", timeframe="daily"):
     found_signals = []
-    top_stocks_to_scan = get_us_target_tickers()
+    tickers = get_tickers(market)
+    tf_config = TIMEFRAME_CONFIG[timeframe]
+
     if max_stocks:
-        top_stocks_to_scan = top_stocks_to_scan[:max_stocks]
+        tickers = tickers[:max_stocks]
 
-    scan_start_date = datetime.now() - timedelta(days=SCAN_DAYS)
+    scan_start_date = datetime.now() - timedelta(days=tf_config["scan_days"])
+    n_stocks = len(tickers)
+    print(
+        f"Scanning {n_stocks} {market.upper()} stocks [{timeframe}]...", file=sys.stderr
+    )
 
-    n_stocks = len(top_stocks_to_scan)
-    print(f"Scanning {n_stocks} stocks...", file=sys.stderr)
-
-    for i, ticker in enumerate(top_stocks_to_scan):
+    for i, ticker in enumerate(tickers):
         try:
             df_raw = yf.download(
                 ticker,
-                period=DATA_PERIOD,
-                interval=INTERVAL,
+                period=tf_config["period"],
+                interval=tf_config["interval"],
                 progress=False,
                 auto_adjust=False,
             )
@@ -679,8 +704,9 @@ def run_screener(max_stocks=None):
                     found_signals.append(
                         {
                             "ticker": ticker,
-                            "timeframe": TIME_FRAME_DESCRIPTION,
+                            "timeframe": tf_config["label"],
                             "signal_date": timestamp.strftime("%Y-%m-%d"),
+                            "signal": "抄底",
                             "close": float(row["close"])
                             if pd.notna(row.get("close"))
                             else None,
@@ -701,6 +727,15 @@ def run_screener(max_stocks=None):
 
 
 if __name__ == "__main__":
-    max_stocks = int(sys.argv[1]) if len(sys.argv) > 1 else None
-    signals = run_screener(max_stocks=max_stocks)
+    parser = argparse.ArgumentParser(description="NX/CD Screener")
+    parser.add_argument("--market", choices=["us", "jp", "hk"], default="us")
+    parser.add_argument(
+        "--timeframe", choices=["4h", "daily", "weekly"], default="daily"
+    )
+    parser.add_argument("--max-stocks", type=int, default=None)
+    args = parser.parse_args()
+
+    signals = run_screener(
+        max_stocks=args.max_stocks, market=args.market, timeframe=args.timeframe
+    )
     print(json.dumps(signals, ensure_ascii=False))

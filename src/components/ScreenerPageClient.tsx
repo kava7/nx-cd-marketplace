@@ -8,21 +8,22 @@ import { useLocale } from '@/contexts/LocaleContext';
 import { formatPrice } from '@/lib/formatPrice';
 import { localizePath } from '@/lib/paths';
 import { purchase } from '@/lib/purchase';
-import type { Market, SignalStrength, StockSignal } from '@/types';
+import type { Market, SignalAction, SignalStrength, StockSignal } from '@/types';
 
 import { MarketTabs } from './MarketTabs';
 import { PaymentModal } from './PaymentModal';
 import { SignalTable } from './SignalTable';
 
-interface ScanResult {
+export interface ScanResult {
   ticker: string;
   timeframe: string;
   signal_date: string;
+  signal: string;
   close: number | null;
 }
 
 interface Props {
-  initialSignals?: ScanResult[];
+  signalMap: Record<string, ScanResult[]>;
 }
 
 function computeSignalLevel(close: number): SignalStrength {
@@ -31,7 +32,7 @@ function computeSignalLevel(close: number): SignalStrength {
   return '低';
 }
 
-export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
+export function ScreenerPageClient({ signalMap }: Props): JSX.Element {
   const { locale, t } = useLocale();
   const router = useRouter();
   const [market, setMarket] = useState<Market>('us');
@@ -40,27 +41,32 @@ export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
   const [showResults, setShowResults] = useState(false);
   const [open, setOpen] = useState(false);
 
+  const tfKey = category === 'fourHour' ? '4h' : category;
+  const comboKey = `${market}-${tfKey}`;
+
   const realSignals = useMemo<StockSignal[] | null>(() => {
-    if (!initialSignals || initialSignals.length === 0) return null;
-    return initialSignals.map((s) => ({
+    const signals = signalMap[comboKey] ?? [];
+    if (signals.length === 0) return null;
+    return signals.map((s) => ({
       symbol: s.ticker,
       name: s.ticker,
       signalTime: s.signal_date,
+      signal: (s.signal === '卖出' ? '卖出' : '抄底') as SignalAction,
       strength: computeSignalLevel(s.close ?? 0),
       price: s.close ?? 0,
       changePercent: 0,
       details: { rsi: 0, macd: '', kdj: '' },
     }));
-  }, [initialSignals]);
-
-  const hasRealData = realSignals !== null;
+  }, [signalMap, comboKey]);
 
   const switchMarket = (m: Market): void => {
     setMarket(m);
+    setShowResults(false);
   };
 
   const switchCategory = (c: string): void => {
     setCategory(c);
+    setShowResults(false);
   };
 
   const startScan = async (): Promise<void> => {
@@ -106,8 +112,8 @@ export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
         </button>
 
         {showResults ? (
-          hasRealData ? (
-            <SignalTable locale={locale} signals={realSignals!} />
+          realSignals !== null ? (
+            <SignalTable locale={locale} signals={realSignals} />
           ) : (
             <p className="py-8 text-center text-sm text-[#848E9C]">
               {locale === 'zh' ? '暂未扫描到信号，系统将定时自动扫描' : 'No signals yet. Auto-scan runs on schedule.'}

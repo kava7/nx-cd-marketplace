@@ -20,6 +20,7 @@ export const usSignals: StockSignal[] = [
   symbol: String(symbol),
   name: String(name),
   signalTime: String(signalTime),
+  signal: '抄底' as const,
   strength: strength as StockSignal['strength'],
   price: Number(price),
   changePercent: Number(changePercent),
