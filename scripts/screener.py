@@ -6,7 +6,15 @@ from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
-from curl_cffi import requests
+
+try:
+    from curl_cffi import requests as _requests
+
+    _USE_CURL = True
+except ImportError:
+    import requests as _requests
+
+    _USE_CURL = False
 import yfinance as yf
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -22,9 +30,10 @@ def patched_download(tickers, period="1y", interval="1d", **kwargs):
     params = {"range": period if period != "730d" else "2y", "interval": interval}
 
     try:
-        resp = requests.get(
-            url, params=params, headers=headers, timeout=30, impersonate="chrome120"
-        )
+        kwargs_get = {"url": url, "params": params, "headers": headers, "timeout": 30}
+        if _USE_CURL:
+            kwargs_get["impersonate"] = "chrome120"
+        resp = _requests.get(**kwargs_get)
         data = resp.json()["chart"]["result"][0]
         df = pd.DataFrame(
             {
