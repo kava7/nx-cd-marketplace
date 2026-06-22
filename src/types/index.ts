@@ -7,7 +7,7 @@ export type SignalStrength = '强' | '中' | '低';
 export interface Product {
   id: string;
   name: Record<Locale, string>;
-  category: 'bottom' | 'volume' | 'classic';
+  category: 'bottom' | 'volume' | 'classic' | 'screener';
   price: number;
   images: string[];
   markets: Market[];

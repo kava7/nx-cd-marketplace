@@ -264,7 +264,6 @@ export function ScreenerPageClient({ signalMap }: Props): JSX.Element {
           amount={buyProduct.price}
           isOpen={!!buyProduct}
           locale={locale}
-          productId={buyProduct.id}
           productName={buyProduct.name}
           onClose={() => setBuyProduct(null)}
           onConfirm={async () => {}}
