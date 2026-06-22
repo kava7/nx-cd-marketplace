@@ -15,8 +15,8 @@ export function ProductCard({ product }: { product: Product }): JSX.Element {
       className="block rounded-xl border border-[#2B3139] bg-[#1E2329] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#363E47] hover:shadow-lg focus:outline focus:outline-2 focus:outline-[#0ECB81]"
       href={`/indicators/${product.id}`}
     >
-      <div className="relative aspect-video overflow-hidden rounded-lg bg-[#2B3139]">
-        <Image alt={product.name[locale]} className="object-cover" fill src={product.images[0]} />
+      <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-[#1E2329]">
+        <Image alt={product.name[locale]} className="object-contain p-2" fill src={product.images[0]} />
       </div>
       <div className="mt-4 flex items-start justify-between gap-3">
         <h3 className="text-lg font-semibold text-white">{product.name[locale]}</h3>

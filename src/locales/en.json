@@ -45,7 +45,7 @@
   },
   "screener": {
     "title": "Multi-Market Screener",
-    "subtitle": "Scan 415 US stocks for recent two-day bottom signals.",
+    "subtitle": "Scan 415 US stocks for recent 5-day bottom signals.",
     "buy": "Buy Now $99",
     "fourHour": "4H Bottom",
     "daily": "Daily Bottom",

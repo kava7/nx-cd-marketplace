@@ -8,8 +8,8 @@ export function ImageCarousel({ alt, images }: { alt: string; images: string[] }
   const [index, setIndex] = useState(0);
   const hasMany = images.length > 1;
   return (
-    <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-[#2B3139] bg-[#2B3139]">
-      <Image alt={alt} className="object-cover" fill src={images[index]} />
+    <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-[#2B3139] bg-[#0B0E11]">
+      <Image alt={alt} className="object-contain p-2" fill src={images[index]} />
       {hasMany ? (
         <>
           <button aria-label="上一张" className="absolute left-3 top-1/2 rounded-full bg-black/50 p-2 text-white" onClick={() => setIndex((index - 1 + images.length) % images.length)} type="button">
