@@ -869,7 +869,7 @@ def get_us_target_tickers():
 
 
 # 2. 参数设置 (日级别)
-SCAN_DAYS = 3
+SCAN_DAYS = 14
 TIME_FRAME_DESCRIPTION = "日级别"
 DATA_PERIOD = "1y"
 INTERVAL = "1d"

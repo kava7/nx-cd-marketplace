@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
@@ -32,12 +32,13 @@ export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
   const { locale, t } = useLocale();
   const router = useRouter();
   const [market, setMarket] = useState<Market>('us');
-  const [category, setCategory] = useState('fourHour');
+  const [category, setCategory] = useState('daily');
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
   const mockSignals = useMemo(() => (market === 'us' ? usSignals : market === 'jp' ? jpSignals : hkSignals), [market]);
 
-  const buildInitialStockSignals = (data: ScanResult[]): StockSignal[] =>
+  const buildStockSignals = (data: ScanResult[]): StockSignal[] =>
     data.map((s) => ({
       symbol: s.ticker,
       name: s.ticker,
@@ -48,30 +49,32 @@ export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
       details: { rsi: 30, macd: 'Golden cross', kdj: 'Oversold' },
     }));
 
-  const [scanResults, setScanResults] = useState<StockSignal[] | null>(
-    initialSignals && initialSignals.length > 0 ? buildInitialStockSignals(initialSignals) : null,
+  const realSignals = useMemo<StockSignal[] | null>(
+    () =>
+      initialSignals && initialSignals.length > 0
+        ? buildStockSignals(initialSignals)
+        : null,
+    [initialSignals],
   );
-  const [scanError, setScanError] = useState<string | null>(null);
-  const hasRealData = initialSignals && initialSignals.length > 0;
+
+  const hasSignals = realSignals !== null && realSignals.length > 0;
+  const scanCompleted = initialSignals !== undefined;
 
   const switchMarket = (m: Market): void => {
     setMarket(m);
-    setScanResults(null);
-    setScanError(null);
+    setShowDemo(false);
   };
 
   const switchCategory = (c: string): void => {
     setCategory(c);
-    setScanResults(null);
-    setScanError(null);
+    setShowDemo(false);
   };
 
   const startScan = async (): Promise<void> => {
     setLoading(true);
-    setScanError(null);
     await new Promise((r) => setTimeout(r, 2000));
-    setScanResults(mockSignals);
     setLoading(false);
+    setShowDemo(true);
   };
 
   return (
@@ -108,17 +111,38 @@ export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {loading ? t('common.scanning') : t('common.startScan')}
         </button>
-        {scanError && <p className="text-sm text-[#F6465D]">{scanError}</p>}
-        {!scanResults && !loading && !scanError && !hasRealData && (
-          <p className="py-8 text-center text-sm text-[#848E9C]">{locale === 'zh' ? '点击「开始扫描」查看模拟抄底信号' : 'Click "Start Scan" to see mock bottom-fishing signals'}</p>
+
+        {/* 真实数据：直接显示 */}
+        {scanCompleted && hasSignals && <SignalTable locale={locale} signals={realSignals} />}
+
+        {/* 扫描完成，0 结果 */}
+        {scanCompleted && !hasSignals && (
+          <p className="py-8 text-center text-sm text-[#848E9C]">
+            {locale === 'zh' ? '当前未扫描到 NX/CD 抄底信号，系统将定时自动扫描' : 'No NX/CD bottom signals found. Auto-scan runs on schedule.'}
+          </p>
         )}
-        {!scanResults && !loading && !scanError && hasRealData && (
-          <p className="py-8 text-center text-sm text-[#0ECB81]">{locale === 'zh' ? '已加载真实扫描数据，点击「开始扫描」重新扫描' : 'Real scan data loaded. Click "Start Scan" to re-scan.'}</p>
+
+        {/* 未扫描，显示展示数据 */}
+        {!scanCompleted && !showDemo && (
+          <p className="py-8 text-center text-sm text-[#848E9C]">
+            {locale === 'zh' ? '暂无扫描数据，点击「开始扫描」查看 NX/CD 模拟信号演示' : 'No scan data yet. Click "Start Scan" to see a demo.'}
+          </p>
         )}
-        {scanResults && scanResults.length === 0 && (
-          <p className="text-sm text-[#848E9C]">{locale === 'zh' ? '未扫描到信号' : 'No signals found'}</p>
+
+        {/* 用户点击了开始扫描：展示模拟信号 + 警告 */}
+        {showDemo && (
+          <>
+            <div className="flex items-start gap-2 rounded-lg border border-[#FFB800]/30 bg-[#FFB800]/10 p-3">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#FFB800]" />
+              <p className="text-xs text-[#FFB800]">
+                {locale === 'zh'
+                  ? '以下为模拟演示数据，非真实扫描结果。真实数据由系统定时自动生成。'
+                  : 'Demo data shown below. Real scan results are generated on a schedule.'}
+              </p>
+            </div>
+            <SignalTable locale={locale} signals={mockSignals} />
+          </>
         )}
-        {scanResults && scanResults.length > 0 && <SignalTable locale={locale} signals={scanResults} />}
       </section>
       <PaymentModal
         amount={99}
