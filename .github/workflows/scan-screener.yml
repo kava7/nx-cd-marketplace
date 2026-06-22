@@ -30,20 +30,26 @@ jobs:
       - name: Install Python deps
         run: pip install -r requirements.txt
 
-      - name: Run US daily screener
+      - name: Run all screeners (9 combos)
         run: |
           ARGS=""
           if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ inputs.max_stocks }}" ]; then
             ARGS="--max-stocks ${{ inputs.max_stocks }}"
           fi
-          python scripts/screener.py --market us --timeframe daily $ARGS > src/data/scan-results-us-daily.json
-          echo "US daily signals found: $(python -c "import json; print(len(json.load(open('src/data/scan-results-us-daily.json'))))")"
+          for market in us jp hk; do
+            for tf in 4h daily weekly; do
+              out="src/data/scan-results-${market}-${tf}.json"
+              python scripts/screener.py --market "$market" --timeframe "$tf" $ARGS > "$out"
+              count=$(python -c "import json; print(len(json.load(open('$out'))))" 2>/dev/null || echo "0")
+              echo "$market $tf: $count signals"
+            done
+          done
 
       - name: Commit results
         run: |
           git config user.name "screener-bot"
           git config user.email "bot@nxcd.com"
-          git add src/data/scan-results-us-daily.json
+          git add src/data/scan-results-*.json
           if git diff --cached --quiet; then
             echo "No new signals, skipping commit."
           else
