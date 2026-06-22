@@ -6,7 +6,7 @@ export const products: Product[] = [
     name: { zh: 'NX/CD 指标', en: 'NX/CD Indicator' },
     category: 'bottom',
     price: 49,
-    images: ['/images/placeholder.png'],
+    images: ['/images/nx-cd.png'],
     markets: ['us', 'jp', 'hk'],
     description: {
       zh: '基于多周期趋势与动量分析，帮助识别买入和卖出时机。',
@@ -22,7 +22,7 @@ export const products: Product[] = [
     name: { zh: 'OBV 指标', en: 'OBV Indicator' },
     category: 'volume',
     price: 39,
-    images: ['/images/placeholder.png'],
+    images: ['/images/obv.png'],
     markets: ['us', 'jp', 'hk'],
     description: {
       zh: '通过成交量变化预判价格走势，捕捉量价背离。',
@@ -38,7 +38,7 @@ export const products: Product[] = [
     name: { zh: '吸筹派发指标', en: 'Accumulation/Distribution' },
     category: 'volume',
     price: 99,
-    images: ['/images/placeholder.png'],
+    images: ['/images/accumulation.png'],
     markets: ['us', 'hk'],
     description: {
       zh: '识别资金吸筹与派发阶段，跟踪主力资金动向。',
@@ -54,7 +54,7 @@ export const products: Product[] = [
     name: { zh: 'MACD 指标', en: 'MACD Indicator' },
     category: 'classic',
     price: 29,
-    images: ['/images/placeholder.png'],
+    images: ['/images/macd.png'],
     markets: ['us', 'jp', 'hk'],
     description: {
       zh: '经典趋势跟踪指标，金叉死叉与背离信号一目了然。',
