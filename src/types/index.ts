@@ -17,19 +17,19 @@ export interface Product {
 
 export type SignalAction = '抄底' | '卖出';
 
+const levelRank: Record<string, number> = { '季级别': 5, '月级别': 4, '周级别': 3, '日级别': 2, '4h级别': 1 };
+
 export interface StockSignal {
   symbol: string;
   name: string;
   signalTime: string;
   signal: SignalAction;
-  strength: SignalStrength;
+  level: string;
   price: number;
-  changePercent: number;
-  details: {
-    rsi: number;
-    macd: string;
-    kdj: string;
-  };
+}
+
+export function sortByLevel(signals: StockSignal[]): StockSignal[] {
+  return [...signals].sort((a, b) => (levelRank[b.level] ?? 0) - (levelRank[a.level] ?? 0));
 }
 
 export interface AlertItem {

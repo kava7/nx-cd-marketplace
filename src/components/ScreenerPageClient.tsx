@@ -8,17 +8,23 @@ import { useLocale } from '@/contexts/LocaleContext';
 import { formatPrice } from '@/lib/formatPrice';
 import { localizePath } from '@/lib/paths';
 import { purchase } from '@/lib/purchase';
-import type { Market, SignalAction, SignalStrength, StockSignal } from '@/types';
+import type { Market, SignalAction, StockSignal } from '@/types';
 
 import { MarketTabs } from './MarketTabs';
 import { PaymentModal } from './PaymentModal';
 import { SignalTable } from './SignalTable';
+
+const levelLabel: Record<string, string> = {
+  '4h': '4h级别', daily: '日级别', weekly: '周级别',
+  monthly: '月级别', quarterly: '季级别',
+};
 
 export interface ScanResult {
   ticker: string;
   timeframe: string;
   signal_date: string;
   signal: string;
+  level: string;
   close: number | null;
 }
 
@@ -26,46 +32,35 @@ interface Props {
   signalMap: Record<string, ScanResult[]>;
 }
 
-function computeSignalLevel(close: number): SignalStrength {
-  if (close < 1) return '强';
-  if (close < 10) return '中';
-  return '低';
-}
-
 export function ScreenerPageClient({ signalMap }: Props): JSX.Element {
   const { locale, t } = useLocale();
   const router = useRouter();
   const [market, setMarket] = useState<Market>('us');
-  const [category, setCategory] = useState('daily');
   const [scanning, setScanning] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const tfKey = category === 'fourHour' ? '4h' : category;
-  const comboKey = `${market}-${tfKey}`;
-
   const realSignals = useMemo<StockSignal[] | null>(() => {
-    const signals = signalMap[comboKey] ?? [];
-    if (signals.length === 0) return null;
-    return signals.map((s) => ({
-      symbol: s.ticker,
-      name: s.ticker,
-      signalTime: s.signal_date,
-      signal: (s.signal === '卖出' ? '卖出' : '抄底') as SignalAction,
-      strength: computeSignalLevel(s.close ?? 0),
-      price: s.close ?? 0,
-      changePercent: 0,
-      details: { rsi: 0, macd: '', kdj: '' },
-    }));
-  }, [signalMap, comboKey]);
+    const all: StockSignal[] = [];
+    for (const tf of ['4h', 'daily', 'weekly']) {
+      const key = `${market}-${tf}`;
+      const signals = signalMap[key] ?? [];
+      for (const s of signals) {
+        all.push({
+          symbol: s.ticker,
+          name: s.ticker,
+          signalTime: s.signal_date,
+          signal: '抄底' as SignalAction,
+          level: levelLabel[s.level] ?? levelLabel[tf] ?? tf,
+          price: s.close ?? 0,
+        });
+      }
+    }
+    return all.length > 0 ? all : null;
+  }, [signalMap, market]);
 
   const switchMarket = (m: Market): void => {
     setMarket(m);
-    setShowResults(false);
-  };
-
-  const switchCategory = (c: string): void => {
-    setCategory(c);
     setShowResults(false);
   };
 
@@ -88,15 +83,6 @@ export function ScreenerPageClient({ signalMap }: Props): JSX.Element {
         </button>
       </div>
       <section className="mt-8 space-y-6 rounded-xl border border-[#2B3139] bg-[#1E2329] p-6">
-        <MarketTabs
-          activeTab={category}
-          onChange={switchCategory}
-          tabs={[
-            { key: 'fourHour', label: t('screener.fourHour') },
-            { key: 'daily', label: t('screener.daily') },
-            { key: 'weekly', label: t('screener.weekly') },
-          ]}
-        />
         <MarketTabs
           activeTab={market}
           onChange={switchMarket}

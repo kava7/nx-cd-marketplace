@@ -707,6 +707,7 @@ def run_screener(max_stocks=None, market="us", timeframe="daily"):
                             "timeframe": tf_config["label"],
                             "signal_date": timestamp.strftime("%Y-%m-%d"),
                             "signal": "抄底",
+                            "level": timeframe,
                             "close": float(row["close"])
                             if pd.notna(row.get("close"))
                             else None,

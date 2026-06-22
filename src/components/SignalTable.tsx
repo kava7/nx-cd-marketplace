@@ -3,18 +3,22 @@
 import { useMemo } from 'react';
 
 import type { Locale, StockSignal } from '@/types';
+import { sortByLevel } from '@/types';
 
-const strengthRank: Record<StockSignal['strength'], number> = { 强: 3, 中: 2, 低: 1 };
+const levelColor: Record<string, string> = {
+  '4h级别': 'bg-[#848E9C]/15 text-[#848E9C]',
+  '日级别': 'bg-[#FFB800]/15 text-[#FFB800]',
+  '周级别': 'bg-[#0ECB81]/15 text-[#0ECB81]',
+  '月级别': 'bg-[#00F0FF]/15 text-[#00F0FF]',
+  '季级别': 'bg-[#F6465D]/15 text-[#F6465D]',
+};
 const signalColor: Record<StockSignal['signal'], string> = {
   '抄底': 'bg-[#0ECB81]/15 text-[#0ECB81]',
   '卖出': 'bg-[#F6465D]/15 text-[#F6465D]',
 };
 
 export function SignalTable({ locale, signals }: { locale: Locale; signals: StockSignal[] }): JSX.Element {
-  const sortedSignals = useMemo(
-    () => [...signals].sort((a, b) => strengthRank[b.strength] - strengthRank[a.strength]),
-    [signals],
-  );
+  const sortedSignals = useMemo(() => sortByLevel(signals), [signals]);
 
   return (
     <div className="overflow-x-auto rounded-xl border border-[#2B3139] bg-[#1E2329]">
@@ -29,7 +33,7 @@ export function SignalTable({ locale, signals }: { locale: Locale; signals: Stoc
         </thead>
         <tbody>
           {sortedSignals.map((signal) => (
-            <tr className="border-t border-[#2B3139]" key={signal.symbol}>
+            <tr className="border-t border-[#2B3139]" key={`${signal.symbol}-${signal.signalTime}`}>
               <td className="px-4 py-3 font-mono font-medium text-white">{signal.symbol}</td>
               <td className="px-4 py-3 font-mono text-[#848E9C]">{signal.signalTime}</td>
               <td className="px-4 py-3">
@@ -38,8 +42,8 @@ export function SignalTable({ locale, signals }: { locale: Locale; signals: Stoc
                 </span>
               </td>
               <td className="px-4 py-3">
-                <span className={`rounded px-2 py-1 text-xs ${signal.strength === '强' ? 'bg-[#0ECB81]/15 text-[#0ECB81]' : signal.strength === '中' ? 'bg-[#FFB800]/15 text-[#FFB800]' : 'bg-[#848E9C]/15 text-[#848E9C]'}`}>
-                  {signal.strength}
+                <span className={`rounded px-2 py-1 text-xs ${levelColor[signal.level] ?? 'bg-[#848E9C]/15 text-[#848E9C]'}`}>
+                  {signal.level}
                 </span>
               </td>
             </tr>

@@ -21,11 +21,11 @@ describe('SignalTable', () => {
     expect(screen.getByText('Signal Level')).toBeInTheDocument();
   });
 
-  it('sorts by strength with highest first', () => {
+  it('sorts by level with highest first', () => {
     render(<SignalTable locale="en" signals={usSignals} />);
 
     const rows = screen.getAllByRole('row');
-    const firstDataRow = rows[1];
-    expect(firstDataRow).toHaveTextContent('AAPL');
+    const firstLevelBadge = rows[1];
+    expect(firstLevelBadge).toHaveTextContent('周级别');
   });
 });
