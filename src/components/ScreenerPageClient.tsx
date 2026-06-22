@@ -1,13 +1,10 @@
 'use client';
 
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { useLocale } from '@/contexts/LocaleContext';
-import { hkSignals } from '@/data/mock-signals-hk';
-import { jpSignals } from '@/data/mock-signals-jp';
-import { usSignals } from '@/data/mock-signals-us';
 import { formatPrice } from '@/lib/formatPrice';
 import { localizePath } from '@/lib/paths';
 import { purchase } from '@/lib/purchase';
@@ -33,10 +30,8 @@ export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
   const router = useRouter();
   const [market, setMarket] = useState<Market>('us');
   const [category, setCategory] = useState('daily');
-  const [loading, setLoading] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [open, setOpen] = useState(false);
-  const [showDemo, setShowDemo] = useState(false);
-  const mockSignals = useMemo(() => (market === 'us' ? usSignals : market === 'jp' ? jpSignals : hkSignals), [market]);
 
   const buildStockSignals = (data: ScanResult[]): StockSignal[] =>
     data.map((s) => ({
@@ -57,24 +52,20 @@ export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
     [initialSignals],
   );
 
-  const hasSignals = realSignals !== null && realSignals.length > 0;
-  const scanCompleted = initialSignals !== undefined;
+  const hasRealData = realSignals !== null;
 
   const switchMarket = (m: Market): void => {
     setMarket(m);
-    setShowDemo(false);
   };
 
   const switchCategory = (c: string): void => {
     setCategory(c);
-    setShowDemo(false);
   };
 
   const startScan = async (): Promise<void> => {
-    setLoading(true);
+    setScanning(true);
     await new Promise((r) => setTimeout(r, 2000));
-    setLoading(false);
-    setShowDemo(true);
+    setScanning(false);
   };
 
   return (
@@ -107,41 +98,17 @@ export function ScreenerPageClient({ initialSignals }: Props): JSX.Element {
             { key: 'hk', label: t('screener.hk') },
           ]}
         />
-        <button className="flex items-center gap-2 rounded-lg border border-[#2B3139] px-5 py-3 text-white" disabled={loading} onClick={startScan} type="button">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {loading ? t('common.scanning') : t('common.startScan')}
+        <button className="flex items-center gap-2 rounded-lg border border-[#2B3139] px-5 py-3 text-white" disabled={scanning} onClick={startScan} type="button">
+          {scanning ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {scanning ? t('common.scanning') : t('common.startScan')}
         </button>
 
-        {/* 真实数据：直接显示 */}
-        {scanCompleted && hasSignals && <SignalTable locale={locale} signals={realSignals} />}
-
-        {/* 扫描完成，0 结果 */}
-        {scanCompleted && !hasSignals && (
+        {hasRealData ? (
+          <SignalTable locale={locale} signals={realSignals!} />
+        ) : (
           <p className="py-8 text-center text-sm text-[#848E9C]">
-            {locale === 'zh' ? '当前未扫描到 NX/CD 抄底信号，系统将定时自动扫描' : 'No NX/CD bottom signals found. Auto-scan runs on schedule.'}
+            {locale === 'zh' ? '暂未扫描到信号，系统将定时自动扫描' : 'No signals yet. Auto-scan runs on schedule.'}
           </p>
-        )}
-
-        {/* 未扫描，显示展示数据 */}
-        {!scanCompleted && !showDemo && (
-          <p className="py-8 text-center text-sm text-[#848E9C]">
-            {locale === 'zh' ? '暂无扫描数据，点击「开始扫描」查看 NX/CD 模拟信号演示' : 'No scan data yet. Click "Start Scan" to see a demo.'}
-          </p>
-        )}
-
-        {/* 用户点击了开始扫描：展示模拟信号 + 警告 */}
-        {showDemo && (
-          <>
-            <div className="flex items-start gap-2 rounded-lg border border-[#FFB800]/30 bg-[#FFB800]/10 p-3">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#FFB800]" />
-              <p className="text-xs text-[#FFB800]">
-                {locale === 'zh'
-                  ? '以下为模拟演示数据，非真实扫描结果。真实数据由系统定时自动生成。'
-                  : 'Demo data shown below. Real scan results are generated on a schedule.'}
-              </p>
-            </div>
-            <SignalTable locale={locale} signals={mockSignals} />
-          </>
         )}
       </section>
       <PaymentModal
