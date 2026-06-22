@@ -643,11 +643,11 @@ def get_cd_signals(df_input: pd.DataFrame) -> pd.DataFrame:
 # --- Timeframe config ---
 TIMEFRAME_CONFIG = {
     "4h": {"period": "2mo", "interval": "60m", "scan_days": 2, "label": "4小时抄底"},
-    "daily": {"period": "1y", "interval": "1d", "scan_days": 5, "label": "日级别抄底"},
+    "daily": {"period": "1y", "interval": "1d", "scan_days": 2, "label": "日级别抄底"},
     "weekly": {
         "period": "3y",
         "interval": "1wk",
-        "scan_days": 28,
+        "scan_days": 2,
         "label": "周级别抄底",
     },
 }
