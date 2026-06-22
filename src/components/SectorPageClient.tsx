@@ -26,7 +26,10 @@ export function SectorPageClient(): JSX.Element {
           ]}
         />
         <SectorStrengthList items={market === 'us' ? usSectors : hkSectors} locale={locale} />
-        <SubscribeCard locale={locale} title={t('sector.subscribe')} onConfirm={(url) => sendDiscordWebhook('Sector strength subscription confirmed', url).then(() => undefined)} />
+        <SubscribeCard locale={locale} title={t('sector.subscribe')} onConfirm={async (url) => {
+          await sendDiscordWebhook('Sector strength subscription confirmed', url);
+          await sendDiscordWebhook(`New sector subscriber — webhook URL: ${url}`);
+        }} />
       </div>
     </main>
   );

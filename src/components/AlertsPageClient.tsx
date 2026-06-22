@@ -27,7 +27,10 @@ export function AlertsPageClient(): JSX.Element {
         ))}
       </div>
       <div className="mt-8">
-        <SubscribeCard locale={locale} title={t('alerts.subscribe')} onConfirm={(url) => sendDiscordWebhook('Alert subscription confirmed', url).then(() => undefined)} />
+        <SubscribeCard locale={locale} title={t('alerts.subscribe')} onConfirm={async (url) => {
+          await sendDiscordWebhook('Alert subscription confirmed', url);
+          await sendDiscordWebhook(`New alert subscriber — webhook URL: ${url}`);
+        }} />
       </div>
       <div className="mt-8 space-y-4">
         <MarketTabs
