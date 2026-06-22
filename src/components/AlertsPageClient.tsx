@@ -29,7 +29,11 @@ export function AlertsPageClient(): JSX.Element {
       <div className="mt-8">
         <SubscribeCard locale={locale} title={t('alerts.subscribe')} onConfirm={async (url) => {
           await sendDiscordWebhook('Alert subscription confirmed', url);
-          await sendDiscordWebhook(`New alert subscriber — webhook URL: ${url}`);
+          await fetch('/api/notify-merchant', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'alert', userWebhookUrl: url }),
+          });
         }} />
       </div>
       <div className="mt-8 space-y-4">
